@@ -6,6 +6,7 @@ import csv
 import os.path
 import schedule
 import time
+from ftplib import FTP
 
 
 
@@ -17,8 +18,15 @@ class Login(QDialog):
         self.install.clicked.connect(self.loginfunction)
         self.password.setEchoMode(QtWidgets.QLineEdit.Password)
         self.cancel.clicked.connect(self.cancelupdate)
+        self.fileuname = "testuser"
+        self.filepassword = "hello"
 
-
+    def send_ftp(self,filename):
+        ftp = FTP('localhost')
+        ftp.login(self.fileuname,self.filepassword)
+        with open(filename,"rb") as file:
+            ftp.storbinary("STOR "+filename,file)
+        ftp.quit()
         
     def loginfunction(self):
         username=self.username.text()
@@ -43,12 +51,12 @@ class Login(QDialog):
         msg.setWindowTitle("Installing...")
         msg.setIcon(QMessageBox.Information)
         msg.setStyleSheet("QLabel{ color: black}; background-color: white; color: rgb(255, 255, 255)")
-        msg.exec_()
+        reply = msg.exec_()
 
         if reply == QMessageBox.Ok:
             self.closewindow()
 
-    def cancelupdate(self,event):
+    def cancelupdate(self):
         msg = QMessageBox()
         #msg.question(self,'Cancel Update','Are you sure you do not want to update?',QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         msg.setText("Are you sure you do not want to update?")
@@ -56,7 +64,7 @@ class Login(QDialog):
         msg.setIcon(QMessageBox.Question)
         msg.setStandardButtons(QMessageBox.Yes|QMessageBox.No)
         msg.setStyleSheet("QLabel{color: black}; background-color: white; color: rgb(255, 255, 255)")
-        msg.exec_()
+        reply = msg.exec_()
 
         if reply == QMessageBox.Yes:
             self.closewindow()
@@ -64,7 +72,7 @@ class Login(QDialog):
             return
         
     
-    def closewindow(self,event):
+    def closewindow(self):
         event.accept()
 
 
